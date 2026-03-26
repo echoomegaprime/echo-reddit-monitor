@@ -1,0 +1,41 @@
+name = "echo-reddit-monitor"
+main = "src/index.ts"
+compatibility_date = "2024-12-01"
+compatibility_flags = ["nodejs_compat"]
+
+[ai]
+binding = "AI"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "echo-reddit-monitor"
+database_id = "8c4e980f-b09f-4a39-89ab-4b699654e03c"
+
+[[kv_namespaces]]
+binding = "CACHE"
+id = "e4533918277a4978b5b7e632f984bf6e"
+
+[[services]]
+binding = "BRAIN"
+service = "echo-shared-brain"
+
+[[services]]
+binding = "CHAT"
+service = "echo-chat"
+
+[[services]]
+binding = "SWARM"
+service = "echo-swarm-brain"
+
+[[services]]
+binding = "KNOWLEDGE_FORGE"
+service = "echo-knowledge-forge"
+
+[triggers]
+crons = ["*/30 * * * *", "0 13 * * *"]
+
+[vars]
+WORKER_VERSION = "1.2.0"
+REDDIT_USER_AGENT = "EchoRedditMonitor/1.0 (by Echo Omega Prime)"
+SCAN_LIMIT = "50"
+RATE_LIMIT_MS = "2000"
