@@ -608,6 +608,8 @@ const app = new Hono<{ Bindings: Env }>();
 app.use("*", cors({ origin: "*", allowMethods: ["GET", "POST", "OPTIONS"] }));
 
 // ---- Health ----
+app.get("/", (c) => c.json({ service: 'echo-reddit-monitor', status: 'operational' }));
+
 app.get("/health", async (c) => {
   await ensureSchema(c.env.DB);
   const postCount =
