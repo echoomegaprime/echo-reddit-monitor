@@ -39,3 +39,7 @@ WORKER_VERSION = "1.2.0"
 REDDIT_USER_AGENT = "EchoRedditMonitor/1.0 (by Echo Omega Prime)"
 SCAN_LIMIT = "50"
 RATE_LIMIT_MS = "2000"
+
+[[analytics_engine_datasets]]
+binding = "ANALYTICS"
+dataset = "echo_metrics"
