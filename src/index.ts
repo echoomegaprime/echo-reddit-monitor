@@ -606,6 +606,16 @@ async function scanAll(env: Env): Promise<ScanResult[]> {
 const app = new Hono<{ Bindings: Env }>();
 
 app.use("*", cors({ origin: "*", allowMethods: ["GET", "POST", "OPTIONS"] }));
+// Security headers middleware
+app.use('*', async (c, next) => {
+  await next();
+  c.res.headers.set('X-Content-Type-Options', 'nosniff');
+  c.res.headers.set('X-Frame-Options', 'DENY');
+  c.res.headers.set('X-XSS-Protection', '1; mode=block');
+  c.res.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
+  c.res.headers.set('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
+});
+
 
 // ---- Health ----
 app.get("/", (c) => c.json({ service: 'echo-reddit-monitor', status: 'operational' }));
