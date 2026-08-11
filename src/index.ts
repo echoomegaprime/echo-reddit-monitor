@@ -32,6 +32,32 @@ interface Env {
   REDDIT_CLIENT_SECRET: string;
   REDDIT_USERNAME: string;
   REDDIT_PASSWORD: string;
+  // Service auth
+  ECHO_API_KEY: string;
+}
+
+// ---------------------------------------------------------------------------
+// Auth
+// ---------------------------------------------------------------------------
+
+// Constant-time string comparison — runtime must not depend on where (or
+// whether) the inputs first differ, including a length mismatch, or an
+// attacker can recover the key length/prefix via timing.
+export function timingSafeEqual(a: string | undefined | null, b: string | undefined | null): boolean {
+  if (!a || !b) return false;
+  const encoder = new TextEncoder();
+  const bufA = encoder.encode(a);
+  const bufB = encoder.encode(b);
+  const len = Math.max(bufA.length, bufB.length, 1);
+  const padA = new Uint8Array(len);
+  const padB = new Uint8Array(len);
+  padA.set(bufA);
+  padB.set(bufB);
+  let mismatch = bufA.length ^ bufB.length;
+  for (let i = 0; i < len; i++) {
+    mismatch |= padA[i] ^ padB[i];
+  }
+  return mismatch === 0;
 }
 
 interface MonitorTarget {
@@ -207,7 +233,7 @@ function sleep(ms: number): Promise<void> {
   return new Promise((r) => setTimeout(r, ms));
 }
 
-function matchesKeywords(text: string, keywords: string[]): string[] {
+export function matchesKeywords(text: string, keywords: string[]): string[] {
   const lower = text.toLowerCase();
   return keywords.filter((kw) => lower.includes(kw.toLowerCase()));
 }
@@ -603,7 +629,7 @@ async function scanAll(env: Env): Promise<ScanResult[]> {
 // Hono App
 // ---------------------------------------------------------------------------
 
-const app = new Hono<{ Bindings: Env }>();
+export const app = new Hono<{ Bindings: Env }>();
 
 app.use("*", cors({ origin: "*", allowMethods: ["GET", "POST", "OPTIONS"] }));
 // Security headers middleware
@@ -616,6 +642,23 @@ app.use('*', async (c, next) => {
   c.res.headers.set('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
 });
 
+// Auth middleware — every route except the bare "/" liveness check requires
+// X-Echo-API-Key. Fail-closed: an unconfigured ECHO_API_KEY is a 503, never
+// an open door.
+app.use('*', async (c, next) => {
+  if (c.req.path === '/') {
+    await next();
+    return;
+  }
+  if (!c.env.ECHO_API_KEY) {
+    return c.json({ error: 'Service misconfigured: ECHO_API_KEY not set' }, 503);
+  }
+  const key = c.req.header('X-Echo-API-Key');
+  if (!timingSafeEqual(key, c.env.ECHO_API_KEY)) {
+    return c.json({ error: 'Unauthorized: invalid or missing X-Echo-API-Key' }, 401);
+  }
+  await next();
+});
 
 // ---- Health ----
 app.get("/", (c) => c.json({ service: 'echo-reddit-monitor', status: 'operational' }));
