@@ -8,20 +8,30 @@ Echo Reddit Monitor watches configurable subreddits for posts matching keyword l
 
 Ships with 6 default monitoring targets: r/cybersecurity, r/netsec, r/technology, r/cryptocurrency, r/oilandgas, and r/realestate, each with domain-specific keyword lists and alert thresholds.
 
+## Authentication
+
+Every route except the bare `GET /` liveness check requires an `X-Echo-API-Key` header matching
+the `ECHO_API_KEY` secret. An unconfigured key fails closed (503), never open. Set it with:
+
+```bash
+npx wrangler secret put ECHO_API_KEY
+```
+
 ## Endpoints
 
-| Method | Path | Description |
-|--------|------|-------------|
-| `GET` | `/health` | Health check with monitored subreddit count, total posts, and alert count |
-| `GET` | `/stats` | Detailed statistics: posts by subreddit, sentiment breakdown, 24h alerts, digest count |
-| `POST` | `/monitor/add` | Add a subreddit to monitor. Body: `{subreddit, keywords[], alert_threshold?}` |
-| `POST` | `/monitor/remove` | Disable a monitored subreddit. Body: `{subreddit}` |
-| `GET` | `/monitor/list` | List all monitored subreddits with keywords and enabled status |
-| `POST` | `/scan` | Trigger a full scan of all enabled subreddits |
-| `GET` | `/posts` | Query discovered posts. Filters: `subreddit`, `keyword`, `sentiment`, `since`, `limit` |
-| `GET` | `/digest` | Retrieve the most recent intelligence digest |
-| `POST` | `/digest/generate` | Generate an AI digest from recent posts. Query: `since` (ISO date) |
-| `GET` | `/alerts` | Query alerts. Filters: `severity`, `since`, `limit`. Joins post data. |
+| Method | Path | Auth | Description |
+|--------|------|------|-------------|
+| `GET` | `/` | none | Liveness check — `{service, status}` |
+| `GET` | `/health` | required | Health check with monitored subreddit count, total posts, and alert count |
+| `GET` | `/stats` | required | Detailed statistics: posts by subreddit, sentiment breakdown, 24h alerts, digest count |
+| `POST` | `/monitor/add` | required | Add a subreddit to monitor. Body: `{subreddit, keywords[], alert_threshold?}` |
+| `POST` | `/monitor/remove` | required | Disable a monitored subreddit. Body: `{subreddit}` |
+| `GET` | `/monitor/list` | required | List all monitored subreddits with keywords and enabled status |
+| `POST` | `/scan` | required | Trigger a full scan of all enabled subreddits |
+| `GET` | `/posts` | required | Query discovered posts. Filters: `subreddit`, `keyword`, `sentiment`, `since`, `limit` |
+| `GET` | `/digest` | required | Retrieve the most recent intelligence digest |
+| `POST` | `/digest/generate` | required | Generate an AI digest from recent posts. Query: `since` (ISO date) |
+| `GET` | `/alerts` | required | Query alerts. Filters: `severity`, `since`, `limit`. Joins post data. |
 
 ## Configuration
 
@@ -55,8 +65,20 @@ Ships with 6 default monitoring targets: r/cybersecurity, r/netsec, r/technology
 ## Deployment
 
 ```bash
-cd O:\ECHO_OMEGA_PRIME\WORKERS\echo-reddit-monitor
+npm install
+npx wrangler secret put ECHO_API_KEY
+npx wrangler secret put REDDIT_CLIENT_ID
+npx wrangler secret put REDDIT_CLIENT_SECRET
+npx wrangler secret put REDDIT_USERNAME
+npx wrangler secret put REDDIT_PASSWORD
 npx wrangler deploy
+```
+
+## Testing
+
+```bash
+npm run typecheck   # tsc --noEmit
+npm test             # vitest run
 ```
 
 ## Architecture

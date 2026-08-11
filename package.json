@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "Reddit monitoring and intelligence Worker for Echo Omega Prime",
   "private": true,
+  "license": "UNLICENSED",
   "scripts": {
     "dev": "wrangler dev",
     "deploy": "wrangler deploy",

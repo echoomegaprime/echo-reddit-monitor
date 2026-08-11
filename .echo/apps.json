@@ -1,0 +1,12 @@
+{
+  "version": 1,
+  "repository": "echoomegaprime/echo-reddit-monitor",
+  "expected_apps": [
+    "repo-steward"
+  ],
+  "known_issue": {
+    "id": "#29466",
+    "description": "GitHub App Suite check-runs silently fail to post (check-runs total_count: 0 after push). Worked around via a manual .echo/repo-health.md PR replicating the intended health receipt.",
+    "status": "open, upstream, tracked separately"
+  }
+}
